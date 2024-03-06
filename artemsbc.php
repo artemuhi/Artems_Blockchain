@@ -1,18 +1,25 @@
 <?php
 class artembc {}
-function artembc_init($filename, $lock=true, $max_size=4094) {
+function artembc_init($filename, $lock=true, $max_size=400094) {
     $bc=new artembc;
     $bc->max_size=$max_size;
     $bc->file=fopen($filename, "w+");
     if ($lock) {
         if (!flock($bc->file, LOCK_EX)) {
             return false;
-            die("bcerror:locked_file");
         }
     }
     return $bc;
 }
-function artembc_createbc() {}
+function artembc_createbc($bc, $data=[]) {
+    $temp=[[
+        "id"=>0,
+        "time"=>time(),
+        "data"=>$data
+    ]];
+    $temp["hash"]=hash("sha256", json_encode($temp));
+    return fwrite($bc->file, json_encode($temp), $bc->max_size);
+}
 function artembc_addtransaction() {}
 function artembc_initblock() {}
 function artembc_checkbc() {}
