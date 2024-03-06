@@ -15,7 +15,8 @@ function artembc_createbc($bc, $data=[]) {
     $temp=[[
         "id"=>0,
         "time"=>time(),
-        "data"=>$data
+        "data"=>$data,
+        "transaction"=>[]
     ]];
     $temp["hash"]=hash("sha256", json_encode($temp));
     return fwrite($bc->file, json_encode($temp), $bc->max_size);
