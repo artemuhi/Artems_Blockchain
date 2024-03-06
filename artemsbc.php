@@ -10,7 +10,7 @@ function artembc_init($filename, $lock=true, $max_size=4094) {
             die("bcerror:locked_file");
         }
     }
-    
+    return $bc;
 }
 function artembc_createbc() {}
 function artembc_addtransaction() {}
