@@ -36,6 +36,7 @@ function artembc_initblock($filename, &$transaction, $data=[]) {
         ]));
         if ($block["idblock"] != $temp and $hash != $block["hash"]) {
             $correct=false;
+            break;
         };
     };
     if ($correct) {
@@ -50,7 +51,38 @@ function artembc_initblock($filename, &$transaction, $data=[]) {
     artembc_save($filename, $bc);
     return $correct;
 }
-function artembc_checkbc() {}
+function artembc_checkbc() {
+    $bc=artembc_load($filename);
+    $temp=count($bc);
+    for ($i = 0, $size = count($bc), $correct2=true; $i < $size; ++$i) {
+        $transaction=$bc[$i];
+        for($i = 0, $size = count($transaction), $correct=true; $i < $size; ++$i) {
+            $block=$transaction[$i];
+            $hash=hash("sha256", json_encode([
+                "id"=>$block["id"],
+                "idblock"=>$block["idblock"],
+                "time"=>$block["time"],
+                "data"=>$block["data"]
+            ]));
+            if ($block["idblock"] != $temp and $hash != $block["hash"]) {
+                $correct=false;
+                break;
+            };
+        };
+        $hash=hash("sha256", json_encode([
+            "id"=>$block["id"],
+            "time"=>$block["time"],
+            "data"=>$block["data"],
+            "transaction"=>$block["transaction"],
+            "prevhash"=>$block["prevhash"]
+        ]));
+        if ($hash != $transaction["hash"] or ($transaction["prevhash"] != $bc[$temp-1]["hash"] and $transaction["id"] == 0)) {
+            $correct2 = false;
+            break;
+        };
+    };
+    return $correct and $correct2;
+}
 function artembc_getblock($filename, $id) {
     $temp=artembc_load($filename);
     return $temp[$id];
