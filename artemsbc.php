@@ -98,6 +98,6 @@ function artembc_save($filename, $data) {
     return file_put_contents($filename, json_encode($data));
 }
 function artembc_load($filename) {
-    return json_decode(file_get_contents($filename));
+    return json_decode(file_get_contents($filename), true);
 }
 ?>
