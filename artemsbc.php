@@ -16,7 +16,7 @@ function artembc_addtransaction($filename, &$transaction, $data) {
     $temp=count($transaction);
     $transaction[]=[
         "id"=>count($transaction),
-        "idblock"=>count($bc)+1;
+        "idblock"=>count($bc)+1,
         "time"=>time(),
         "data"=>$data
     ];
