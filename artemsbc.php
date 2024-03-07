@@ -16,7 +16,7 @@ function artembc_addtransaction($filename, &$transaction, $data) {
     $temp=count($transaction);
     $transaction[]=[
         "id"=>count($transaction),
-        "idblock"=>count($bc)+1,
+        "idblock"=>count($bc),
         "time"=>time(),
         "data"=>$data
     ];
@@ -45,43 +45,46 @@ function artembc_initblock($filename, &$transaction, $data=[]) {
             "time"=>time(),
             "data"=>$data,
             "transaction"=>$transaction,
-            "prevhash"=>hash("sha256", json_encode($bc[$temp-1]))
+            "prevhash"=>$bc[$temp-1]["hash"]
         ];
     };
+    $bc[$temp]["hash"]=hash("sha256", json_encode($bc[$temp]));
     artembc_save($filename, $bc);
     return $correct;
 }
-function artembc_checkbc() {
+function artembc_checkbc($filename) {
     $bc=artembc_load($filename);
     $temp=count($bc);
     for ($i = 0, $size = count($bc), $correct2=true; $i < $size; ++$i) {
         $transaction=$bc[$i];
-        for($i = 0, $size = count($transaction), $correct=true; $i < $size; ++$i) {
-            $block=$transaction[$i];
-            $hash=hash("sha256", json_encode([
-                "id"=>$block["id"],
-                "idblock"=>$block["idblock"],
-                "time"=>$block["time"],
-                "data"=>$block["data"]
-            ]));
-            if ($block["idblock"] != $temp and $hash != $block["hash"]) {
-                $correct=false;
-                break;
+        for($i1 = 0, $size = count($transaction), $correct=true; $i1 < $size; ++$i1) {
+            if (count($transaction["transaction"])>0){
+                $block=$transaction["transaction"][$i1];
+                $hash=hash("sha256", json_encode([
+                    "id"=>$block["id"],
+                    "idblock"=>$block["idblock"],
+                    "time"=>$block["time"],
+                    "data"=>$block["data"]
+                ]));
+                if ($block["idblock"] != $temp-1 or $hash != $block["hash"]) {
+                    $correct=false;
+                    break;
+                };
             };
         };
         $hash=hash("sha256", json_encode([
-            "id"=>$block["id"],
-            "time"=>$block["time"],
-            "data"=>$block["data"],
-            "transaction"=>$block["transaction"],
-            "prevhash"=>$block["prevhash"]
+            "id"=>$transaction["id"],
+            "time"=>$transaction["time"],
+            "data"=>$transaction["data"],
+            "transaction"=>$transaction["transaction"],
+            "prevhash"=>$transaction["prevhash"]
         ]));
-        if ($hash != $transaction["hash"] or ($transaction["prevhash"] != $bc[$temp-1]["hash"] and $transaction["id"] == 0)) {
-            $correct2 = false;
+        if (/*$hash != $transaction["hash"] or */($transaction["prevhash"] != $bc[$temp-1]["hash"] and $i != 0)) {
+            $correct2 = [false, $i];
             break;
         };
     };
-    return $correct and $correct2;
+    return [$correct, $correct2];
 }
 function artembc_getblock($filename, $id) {
     $temp=artembc_load($filename);
